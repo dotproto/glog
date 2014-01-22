@@ -1,4 +1,5 @@
 var user = "svincent";
+var blogTag = "GLOG:";
 
 // dead simple "get" function courtesy of Jake Archibald (@jaffathecake)
 // http://www.html5rocks.com/en/tutorials/es6/promises/
@@ -50,12 +51,11 @@ function getGistsTest() {
 }
 
 function gistPages(link) {
-  if (!link.trim()) return;
+  if (!link || !link.trim()) return;
 
   var nav = Object.create(null);
-  var tagExp = /, /;
-  // group 1 is the URL, group 2 describes what it is used for
-  var relExp = /<([^>]*)>; rel="([^"]*)"/;
+  var tagExp = /,\s*/;                     // Links are provided as a CSV
+  var relExp = /<([^>]*)>; rel="([^"]*)"/; // Group 1 is a URL, group 2 describes the URL's purpose
   var items = link.split(tagExp);
   items.forEach(function(value) {
     var match = value.match(relExp);
@@ -79,7 +79,7 @@ function getHeaders(headerString) {
   var regexp = /:\s?(.*)/;
 
   headerString.split(/\r\n/).forEach(function(value){
-    if (!value.trim()) return; // Abort, this value is meaningless!
+    if (!value || !value.trim()) return; // Abort, this value is meaningless!
     var chop = value.split(regexp);
 
     Object.defineProperty(headers, chop[0], {
@@ -93,10 +93,17 @@ function getHeaders(headerString) {
   return headers;
 }
 
-var resp = getGistsTest();
+var resp = getGists();
 resp.then(function(req) {
   var headers = getHeaders(req.getAllResponseHeaders());
   console.log(headers);
-  console.log(gistPages("<https://api.github.com/user/150330/gists?page=2>; rel=\"next\", <https://api.github.com/user/150330/gists?page=5>; rel=\"last\""))
+  console.log(gistPages(headers.Link))
+
+  var gistList = JSON.parse(req.response);
+  filteredGists = gistList.filter(function(obj, index, array){
+    return obj.description.indexOf(blogTag) !== -1
+  })
+  console.log(filteredGists);
+  debugger;
 }, basicError);
 
