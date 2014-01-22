@@ -1,0 +1,21 @@
+HTTP/1.1 200 OK
+Server: GitHub.com
+Date: Wed, 22 Jan 2014 04:06:29 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Status: 200 OK
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 52
+X-RateLimit-Reset: 1390365244
+Cache-Control: public, max-age=60, s-maxage=60
+ETag: "7efc592b0bdbc99b50220716090c793f"
+Vary: Accept
+X-GitHub-Media-Type: github.beta
+Link: <https://api.github.com/user/150330/gists?page=2>; rel="next", <https://api.github.com/user/150330/gists?page=5>; rel="last"
+X-Content-Type-Options: nosniff
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: ETag, Link, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval
+Access-Control-Allow-Origin: *
+X-GitHub-Request-Id: 6CE079A0:60EF:15B8138:52DF4385
+Vary: Accept-Encoding
+Content-Encoding: gzip
