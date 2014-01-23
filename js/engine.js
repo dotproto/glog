@@ -1,5 +1,36 @@
 var user = "svincent";
-var blogTag = "GLOG:";
+var blogTag = "POST:";
+
+(function(){
+  var PostAuthor   = function() {}
+  PostAuthor.prototype.name    = null;
+  PostAuthor.prototype.url     = null;
+  PostAuthor.prototype.image   = null;
+
+  var PostTime     = function() {}
+  PostTime.prototype.created   = null;
+  PostTime.prototype.edited    = null;
+
+  var PostFile     = function() {}
+  PostFile.prototype.name      = null;
+  PostFile.prototype.type      = null;
+  PostFile.prototype.url       = null;
+
+  var PostComments = function() {}
+  PostComments.prototype.count = 0;
+  PostComments.prototype.url   = null;
+
+  var Post = function() {};
+  Post.prototype.title = null;
+  Post.prototype.author = new PostAuthor();
+  Post.prototype.time   = new PostTime();
+  Post.prototype.comments = new PostComments();
+  Post.prototype.files = [];
+
+  this.Post = Post;
+  this.PostFile = PostFile;
+})()
+
 
 // dead simple "get" function courtesy of Jake Archibald (@jaffathecake)
 // http://www.html5rocks.com/en/tutorials/es6/promises/
@@ -35,6 +66,7 @@ function get(url) {
 }
 
 function basicError(err) {
+
   console.error(err);
 }
 
@@ -46,7 +78,7 @@ function getGists() {
 }
 
 function getGistsTest() {
-  var url = "dummy/getify.json";
+  var url = "dummy/getify_gists.json";
   return get(url);
 }
 
@@ -93,17 +125,96 @@ function getHeaders(headerString) {
   return headers;
 }
 
-var resp = getGists();
-resp.then(function(req) {
+function gistToPost(gist) {
+   post = new Post();
+   // Preapre Author record
+   post.author.name  = gist.user.login;
+   post.author.url   = gist.user.html_url;
+   post.author.image = "//gravatar.com/avatar/" + gist.user.gravatar_id;
+   // Prepare Time record
+   post.time.created = Date(gist.created_at);
+   post.time.edited  = Date(gist.updated_at);
+   // Prepare Comment record
+   post.comments.count = gist.comments;
+   post.comments.url = gist.comments_url;
+   // Prepare File records
+   for (var key in gist.files) {
+     var file = new PostFile();
+     var current = gist.files[key];
+     file.name = current.filename;
+     file.type = current.type;
+     file.url  = current.raw_url;
+
+     post.files.push(file);
+   }
+
+   return post;
+}
+
+function appendPost(post) {
+  var getList = [];
+  var files = post.files;
+  post.files.forEach(function(file, index, array){
+    // get(file.url).then(function(req){
+    get("https://gist.github.com/svincent/8555854.js").then(function(req){
+      console.log(req.response);
+    });
+  });
+}
+
+getGists().then(function(req) {
   var headers = getHeaders(req.getAllResponseHeaders());
-  console.log(headers);
-  console.log(gistPages(headers.Link))
+  // console.log(headers);
+  // console.log(gistPages(headers.Link))
 
   var gistList = JSON.parse(req.response);
   filteredGists = gistList.filter(function(obj, index, array){
     return obj.description.indexOf(blogTag) !== -1
-  })
-  console.log(filteredGists);
-  debugger;
-}, basicError);
+  });
 
+  var postList = [];
+  filteredGists.forEach(function(item){
+    postList.push(gistToPost(item));
+  });
+
+  postList.forEach(function(post, index, array) {
+    appendPost(post);
+  });
+
+}, function(error){
+  console.error(error);
+  throw error;
+});
+
+/* Gist structure
+
+In order for the user to expose a blog post they must follow some sort of well defined convention.
+Gists are super simple on the back end. They're comprised of only a couple meaningful pieces:
+- A unique ID
+- Description for the gist
+- Created timestamp
+- Updated timestamp
+- Comments (url)
+- Some other stuff
+- One or more files with the following properties:
+  - filename
+  - body
+
+Description seems like the most natural candidate to identify a gist as a blog post (since its the only use-editable gist-wide field).
+
+# Files
+
+How should I handle multiple files in a Gist? The easiest implimentation would be
+
+
+
+# Images
+
+Gists don't offer a good way of storing images. While I really want the editing process to be dead simple, it's just not feasable to expect users to convert an image into a base64 encoded string and save it as a file. Pearhps I can add support for that in the future. For now I'll just assume that all iamges are going to be hosted statically along with the main JS file.
+
+# TODO
+
+* Create a JS bookmarklet that converts a file on the user's filesystem or an image on the web into a Base64 string. Bonus points if it auto-inserts the string into the currently selected text field.
+    * Dead simple greasemonkey script so you can invoke the script via keyboard shortcut
+
+*/
