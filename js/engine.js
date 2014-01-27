@@ -103,7 +103,7 @@ function gistPages(link) {
 }
 
 /**
- * Convert a XMLHttpRequest getAllResponseHeaders() string into a haeder field object. Here, field
+ * Convert a XMLHttpRequest getAllResponseHeaders() string into a header field object. Here, field
  * names map to keys and field values map to values.
  */
 function getHeaders(headerString) {
