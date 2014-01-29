@@ -32,7 +32,7 @@ var blogTag = "POST:";
 })()
 
 
-// dead simple "get" function courtesy of Jake Archibald (@jaffathecake)
+// Simple "get" promise courtesy of Jake Archibald (@jaffathecake)
 // http://www.html5rocks.com/en/tutorials/es6/promises/
 function get(url) {
   // Return a new promise.
@@ -42,15 +42,12 @@ function get(url) {
     req.open('GET', url);
 
     req.onload = function() {
-      // This is called even on 404 etc
-      // so check the status
+      // This is called even on 404, so check the status
       if (req.status == 200) {
         // Resolve the promise with the response text
         resolve(req);
-      }
-      else {
-        // Otherwise reject with the status text
-        // which will hopefully be a meaningful error
+      } else {
+        // Otherwise reject with the status text which will hopefully be a meaningful error
         reject(Error(req.statusText));
       }
     };
@@ -185,36 +182,3 @@ getGists().then(function(req) {
   console.error(error);
   throw error;
 });
-
-/* Gist structure
-
-In order for the user to expose a blog post they must follow some sort of well defined convention.
-Gists are super simple on the back end. They're comprised of only a couple meaningful pieces:
-- A unique ID
-- Description for the gist
-- Created timestamp
-- Updated timestamp
-- Comments (url)
-- Some other stuff
-- One or more files with the following properties:
-  - filename
-  - body
-
-Description seems like the most natural candidate to identify a gist as a blog post (since its the only use-editable gist-wide field).
-
-# Files
-
-How should I handle multiple files in a Gist? The easiest implimentation would be
-
-
-
-# Images
-
-Gists don't offer a good way of storing images. While I really want the editing process to be dead simple, it's just not feasable to expect users to convert an image into a base64 encoded string and save it as a file. Pearhps I can add support for that in the future. For now I'll just assume that all iamges are going to be hosted statically along with the main JS file.
-
-# TODO
-
-* Create a JS bookmarklet that converts a file on the user's filesystem or an image on the web into a Base64 string. Bonus points if it auto-inserts the string into the currently selected text field.
-    * Dead simple greasemonkey script so you can invoke the script via keyboard shortcut
-
-*/
