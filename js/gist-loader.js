@@ -1,7 +1,4 @@
-function proxyForEach(arrayLike, callback) {
-  Array.prototype.slice.call(arrayLike).forEach(callback);
-}
-
+// Parse the JSONP Gist data provided by GitHub
 function parseGist(data) {
   var style = document.createElement('link');
   style.setAttribute('rel', 'stylesheet');
@@ -11,12 +8,13 @@ function parseGist(data) {
   var wrap = document.createDocumentFragment().appendChild(document.createElement('div'));
   wrap.innerHTML = data.div;
 
-  var files = wrap.getElementsByClassName('gist-file')
-  proxyForEach(files, function(file){
-    document.body.appendChild(file);
+  var files = wrap.getElementsByClassName('gist-file');
+  _.each(files, function(file){
+    document.body.appendChild(file.cloneNode(true));
   });
 }
 
+// Asynchronously fetch a Gist via GitHub's public JSONP interface
 function loadGist(user, id) {
   var script = document.createElement("script");
   script.setAttribute("src", "https://gist.github.com/" + user + "/"+ id + ".json?callback=parseGist");
