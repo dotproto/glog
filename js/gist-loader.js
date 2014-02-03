@@ -1,3 +1,4 @@
+var obj = {};
 // Parse the JSONP Gist data provided by GitHub
 function parseGist(data) {
   var style = document.createElement('link');
@@ -12,6 +13,8 @@ function parseGist(data) {
   _.each(files, function(file){
     document.body.appendChild(file.cloneNode(true));
   });
+
+  obj = data;
 }
 
 // Asynchronously fetch a Gist via GitHub's public JSONP interface
