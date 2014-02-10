@@ -63,12 +63,14 @@ function get(url) {
 }
 
 function basicError(err) {
-
   console.error(err);
 }
 
 
 // https://api.github.com/gists/7899369
+// Fetch a list of gists for a given user.
+//
+// TODO: User is implicitly defined in the caller's scope? That's ... just weird.
 function getGists() {
   var url = "https://api.github.com/users/" + user + "/gists";
   return get(url);
@@ -79,6 +81,7 @@ function getGistsTest() {
   return get(url);
 }
 
+// TODO: What does this function do?
 function gistPages(link) {
   if (!link || !link.trim()) return;
 

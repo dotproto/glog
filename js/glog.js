@@ -28,13 +28,15 @@ Gloggy.prototype.setHeader = function(xhr, header, value) {
   return xhr;
 }
 
+Gloggy.prototype.setHeaders= function(xhr, headers) {
+  for(header in headers) {
+    Gloggy.prototype.setHeader(xhr, header, headers[header])
+  }
+}
+
 Gloggy.prototype.getConfig = {
   headers: {
-    "Accept": "application/vnd.github.v3+json",
-    "Cookie": "",
-    "User-Agent": Gloggy.prototype.name + "/" + Gloggy.prototype.version +
-                  ", " + navigator.userAgent
-  }
+    "Accept": "application/vnd.github.v3+json"
 }
 
 Gloggy.prototype.fetchGistListConfig = {
@@ -51,7 +53,10 @@ Gloggy.prototype.get = function get(url, config) {
   return new Promise(function(resolve, reject) {
     // Do the usual XHR stuff
     var req = new XMLHttpRequest();
+
     req.open('GET', url);
+
+    Gloggy.prototype.setHeaders(req, config.headers);
 
     req.onload = function() {
       // This is called even on 404, so check the status
@@ -70,7 +75,7 @@ Gloggy.prototype.get = function get(url, config) {
     };
 
     // Make the request
-    req.send();
+    // req.send();
   });
 }
 
@@ -128,7 +133,7 @@ Gloggy.prototype.fetchGistList = function fetchGistList(config){
   // end URL params
 
   console.log("Issuing GET request for '" + url + "'");
-  // return this.get(url);
+  return this.get(url);
 }
 
 /**
@@ -139,3 +144,4 @@ Gloggy.prototype.fetchGistList = function fetchGistList(config){
 Gloggy.prototype.fetchFullGistList = function(user) {}
 
 var g = new Gloggy();
+g.fetchGistList("svincent")
