@@ -37,6 +37,7 @@ Gloggy.prototype.setHeaders= function(xhr, headers) {
 Gloggy.prototype.getConfig = {
   headers: {
     "Accept": "application/vnd.github.v3+json"
+  }
 }
 
 Gloggy.prototype.fetchGistListConfig = {
