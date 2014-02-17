@@ -1,10 +1,22 @@
 // Dependencies:
 // * lodash >= 2.4.X
 
-var Gloggy = function(){};
+var Gloggy = function(config){
+  this.config = _.defaults({}, config, this.defaults);
+};
+
 
 Gloggy.prototype.name = "Gloggy";
 Gloggy.prototype.version = "0.0.1a";
+
+Gloggy.prototype.defaults = {
+  user: 'svincent',
+  post: {
+    prefix: 'POST: ',
+    substring: '',
+    postfix: ''
+  }
+}
 
 // TODO:
 // * fetchGists() - Fetch a list of gists so we can try to find glog posts
@@ -76,7 +88,7 @@ Gloggy.prototype.get = function get(url, config) {
     };
 
     // Make the request
-    // req.send();
+    req.send();
   });
 }
 
@@ -92,33 +104,28 @@ Gloggy.prototype.get = function get(url, config) {
  *                                   parameter. 0 will exclude this parameter from the request.
  * @return {!Object}                 TBD
  */
-Gloggy.prototype.fetchGistList = function fetchGistList(config){
-  // If the caller passed in a string assume the request was for a specific user
-  if (typeof config === "string") {
-    config = {"user": config};
-  }
-
+Gloggy.prototype.fetchGistList = function fetchGistList(callConfig){
   // Prepare base config and url objects
-  var conf = _.defaults({}, config, this.fetchGistListConfig);
-  var url = "https://api.github.com/users/" + conf.user + "/gists";
+  var getConfig = _.defaults({}, callConfig, this.fetchGistListConfig);
+  var url = "https://api.github.com/users/" + this.config.user + "/gists";
 
   // Sanitize page offset
-  conf.page = parseInt(conf.page);
-  conf.page = isNaN(conf.page) ? this.fetchGistListConfig.page : conf.page ;
+  getConfig.page = parseInt(getConfig.page);
+  getConfig.page = isNaN(getConfig.page) ? this.fetchGistListConfig.page : getConfig.page ;
   // Sanitize results per page
-  conf.count = parseInt(conf.count);
-  conf.count = isNaN(conf.count) ? this.fetchGistListConfig.count : conf.count;
+  getConfig.count = parseInt(getConfig.count);
+  getConfig.count = isNaN(getConfig.count) ? this.fetchGistListConfig.count : getConfig.count;
 
   // Begin processing potential URL parameters
   var params = Object.create(null);
 
   // Only set the 'per_page' param if the value is a non-zero integer
-  if (conf.count !== 0) {
-    params["per_page"] = conf.count;
+  if (getConfig.count !== 0) {
+    params["per_page"] = getConfig.count;
   }
   // Only set the 'page' param if it is an integer other than 1 (the default value)
-  if (conf.page !== 1) {
-    params["page"] = conf.page;
+  if (getConfig.page !== 1) {
+    params["page"] = getConfig.page;
   }
 
   // Begin appending special parameters to the URL
@@ -142,7 +149,124 @@ Gloggy.prototype.fetchGistList = function fetchGistList(config){
  * @param  {string} user Username of the person to look up
  * @return {!Object} TBD
  */
-Gloggy.prototype.fetchFullGistList = function(user) {}
+Gloggy.prototype.fetchFullGistList = function(user) {
 
-var g = new Gloggy();
-g.fetchGistList("svincent")
+}
+
+/**
+ * Convert a XMLHttpRequest getAllResponseHeaders() string into a header field object. Here, field
+ * names map to keys and field values map to values.
+ */
+Gloggy.prototype.getHeaders = function(headers) {
+  // Support strings or XHR objects
+  headers = typeof headers === "string" ? headers : headers.getAllResponseHeaders();
+  var headers = Object.create(null);
+  var regexp = /:\s?(.*)/;
+
+  headers.split(/\r\n/).forEach(function(value){
+    if (!value || !value.trim()) return; // Abort, this value is meaningless!
+    var chop = value.split(regexp);
+
+    Object.defineProperty(headers, chop[0], {
+      value: chop[1],
+      enumerable: true,
+      configurable: false,
+      writable: false
+    } );
+  })
+
+  return headers;
+}
+
+Gloggy.prototype.getResponse = function(xhr) {
+  return xhr.response;
+}
+
+Gloggy.prototype.parseJson = function(msg) {
+  return JSON.parse(msg);
+}
+
+// Filter a list of gists to a list of Gloggy posts
+Gloggy.prototype.filterPosts = function(gistList) {
+  var prefix = this.config.post.prefix;
+  var postfix = this.config.post.postfix;
+
+  var posts = _.filter(gistList, function(gist) {
+    var isPost = true;
+    var desc = gist.description;
+
+    // Check whether the prefix string is used
+    if (isPost && prefix != "") {
+      if(desc.substring(0, prefix.length) !== prefix) {
+        isPost = false;
+      }
+    }
+
+    // Check whether the postfix string is used
+    if (isPost && postfix != "") {
+      if (desc.substring(desc.length - postfix.length) !== postfix) {
+        isPost = false;
+      }
+    }
+
+    return isPost;
+  });
+  return posts;
+}
+
+// TODO: Retrieve the "link" header from the GitHub response XHR object
+Gloggy.prototype.parseLinkHeader = function(header) {}
+
+// Data structure for the Gloggy post data type + helper functions
+Gloggy.prototype.postTypeInternal = function(config) {
+  return {
+    // Full title less the prefix/postix used to mark it as a Gloggy post
+    title: function(title)  { return this.title =
+      title.substring(config.post.prefix.length, config.post.postifx.length); },
+    // Number of comments on this post
+    comments: function(num) { return this.comments = num; },
+    // URL for the full comments on the post
+    commentUrl: function(url) { return this.commentUrl = url; },
+    // Date the post was created
+    created: function(date) { return this.created = new Date(date); },
+    // Date of the most recent edit
+    edited: function(date)  { return this.edited  = new Date(date); },
+    // Slug converts a filename into a slug that can be used for the current page
+    slug: function(file)    { return this.slug = title.substring(0, title.lastIndexOf(".")); },
+    // Post's body text
+    dataUrl: function(text) { return this.bodyUrl = text; },
+  }
+}
+
+// Returns a new instance of a bootstrapped post object. To use simply call the appropriately named
+// method with your starter values. Do not `new` this function -- doing so will cause unexpected and
+// probably super weird behavior.
+Gloggy.prototype.postType = function(){
+  return new this.postTypeInternal(this.config);
+}
+
+Gloggy.prototype.gistMetaToPostMeta = function(gist) {
+  var post = this.postType();
+  post.title(gist.description);
+  post.comments(gist.comments);
+  post.commentUrl(gist.comments_url);
+  post.created(gist.created_at);
+  post.edited(gist.updated_at);
+  post.slug(gist.files[0]);
+  post.bodyUrl('http://gist.github.com/' + this.config.user + '/' + gist.id + '.json?callback=gistToPost');
+}
+
+Gloggy.prototype.gistListToPostList = function(){}
+
+var g = new Gloggy({'user': 'svincent'});
+g.fetchGistList()
+  .then(g.getResponse)
+  .then(g.parseJson)
+  .then(g.filterPosts.bind(g))
+  .then(function(a){
+      console.log("success");
+      console.log(a);
+    }, function(e){
+      console.log("fail");
+      console.log(e);
+    });

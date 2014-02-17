@@ -17,7 +17,7 @@ function parseGist(data) {
   obj = data;
 }
 
-// Asynchronously fetch a Gist via GitHub's public JSONP interface
+// Asynchronously fetch a Gist using GitHub's public JSONP interface
 function loadGist(user, id) {
   var script = document.createElement("script");
   script.setAttribute("src", "https://gist.github.com/" + user + "/"+ id + ".json?callback=parseGist");
