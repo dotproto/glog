@@ -15,6 +15,9 @@ var Gloggy = function(config){
 
 Gloggy.prototype.name = "Gloggy";
 Gloggy.prototype.version = "0.0.1a";
+Gloggy.prototype.gistMetaList = [];
+Gloggy.prototype.gistMetaListFull = [];
+Gloggy.prototype.postMetaList = [];
 
 Gloggy.prototype.defaults = {
   user: 'svincent',
@@ -22,6 +25,9 @@ Gloggy.prototype.defaults = {
     prefix: 'POST: ',
     substring: '',
     postfix: ''
+  },
+  index: {
+    perPage: 10
   }
 }
 
@@ -64,8 +70,10 @@ Gloggy.prototype.fetchGistListConfig = {
   count: 100
 }
 
-// Simple "get" promise courtesy of Jake Archibald (@jaffathecake)
-// http://www.html5rocks.com/en/tutorials/es6/promises/
+/**
+ * Simple "get" promise courtesy of Jake Archibald (@jaffathecake)
+ * http://www.html5rocks.com/en/tutorials/es6/promises/
+ */
 Gloggy.prototype.get = function get(url, config) {
   config = _.defaults({}, config, this.getConfig);
 
@@ -157,7 +165,6 @@ Gloggy.prototype.fetchGistList = function fetchGistList(callConfig){
  * @return {!Object} TBD
  */
 Gloggy.prototype.fetchFullGistList = function(user) {
-
 }
 
 /**
@@ -195,12 +202,19 @@ Gloggy.prototype.parseJson = function(msg) {
 
 // Filter a list of gists to a list of Gloggy posts
 Gloggy.prototype.filterPosts = function(gistList) {
+  this.gistMetaListFull = gistList;
+
   var prefix = this.config.post.prefix;
   var postfix = this.config.post.postfix;
 
   var posts = _.filter(gistList, function(gist) {
     var isPost = true;
     var desc = gist.description;
+
+    // Only proceed if the Gist has a description
+    if (!(typeof desc === "string" && desc.trim() !== "")) {
+      isPost = false;
+    }
 
     // Check whether the prefix string is used
     if (isPost && prefix != "") {
@@ -218,6 +232,7 @@ Gloggy.prototype.filterPosts = function(gistList) {
 
     return isPost;
   });
+
   return posts;
 }
 
@@ -232,7 +247,7 @@ Gloggy.prototype.postTypeInternal = function(config) {
       var prefix = config.post.prefix
         , postfix = config.post.postfix;
 
-      return this.title = title.substring(prefix.length, postfix.length);
+      return this.title = title.substring(prefix.length, title.length - postfix.length);
     }
 
     // Number of comments on this post
@@ -268,8 +283,7 @@ Gloggy.prototype.postTypeInternal = function(config) {
 }
 
 // Returns a new instance of a bootstrapped post object. To use simply call the appropriately named
-// method with your starter values. Do not `new` this function -- doing so will cause unexpected and
-// probably super weird behavior.
+// method with your starter values.
 Gloggy.prototype.postType = function(){
   return new this.postTypeInternal(this.config);
 }
@@ -297,10 +311,17 @@ Gloggy.prototype.gistMetaListToPostMetaList = function(gistMetaList) {
     postMetaList.push( this.gistMetaToPostMeta(gistMetaList[i]) );
   }
 
+  this.postMetaList = postMetaList;
   return postMetaList;
 }
 
-var g = new Gloggy({'user': 'svincent'});
+Gloggy.prototype.renderPostList = function(postList){
+  this.config.index.perPage
+}
+
+var g = new Gloggy({'user': 'svincent'})
+  , r = null;
+
 g.fetchGistList()
   .then(g.getResponse)
   .then(g.parseJson)
@@ -309,7 +330,9 @@ g.fetchGistList()
   .then(function(a){
       console.log("success");
       console.log(a);
+      r = a;
     }, function(e){
       console.log("fail");
       throw(e);
+      r = e;
     });
