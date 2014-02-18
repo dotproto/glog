@@ -1,6 +1,13 @@
 // Dependencies:
 // * lodash >= 2.4.X
 
+// TODO: Clarify terminology in this file.
+// * gist - Only use to refer to an individual Gist (i.e. http request for a specific gist). For clarity this term
+//          shouldn't be used as a variable name. See one of the below terms for something more descriptive.
+// * gistData - Data returned in a JSONP request for information about a specific gist.
+// * gistMeta - Refers to a gist's metadata as returned by a gists api request.
+// * gistMetaList - The gists api returns a list of gistMeta data regarding gists.
+
 var Gloggy = function(config){
   this.config = _.defaults({}, config, this.defaults);
 };
@@ -221,20 +228,42 @@ Gloggy.prototype.parseLinkHeader = function(header) {}
 Gloggy.prototype.postTypeInternal = function(config) {
   return {
     // Full title less the prefix/postix used to mark it as a Gloggy post
-    title: function(title)  { return this.title =
-      title.substring(config.post.prefix.length, config.post.postifx.length); },
+    title: function(title)  {
+      var prefix = config.post.prefix
+        , postfix = config.post.postfix;
+
+      return this.title = title.substring(prefix.length, postfix.length);
+    }
+
     // Number of comments on this post
-    comments: function(num) { return this.comments = num; },
+    ,comments: function(num) {
+      return this.comments = num;
+    }
+
     // URL for the full comments on the post
-    commentUrl: function(url) { return this.commentUrl = url; },
+    ,commentUrl: function(url) {
+      return this.commentUrl = url;
+    }
+
     // Date the post was created
-    created: function(date) { return this.created = new Date(date); },
+    ,created: function(date) {
+      return this.created = new Date(date);
+    }
+
     // Date of the most recent edit
-    edited: function(date)  { return this.edited  = new Date(date); },
+    ,edited: function(date)  {
+      return this.edited  = new Date(date);
+    }
+
     // Slug converts a filename into a slug that can be used for the current page
-    slug: function(file)    { return this.slug = title.substring(0, title.lastIndexOf(".")); },
+    ,slug: function(filename) {
+      return this.slug = filename.substring(0, filename.lastIndexOf("."));
+    }
+
     // Post's body text
-    dataUrl: function(text) { return this.bodyUrl = text; },
+    ,dataUrl: function(text) {
+      return this.dataUrl = text;
+    }
   }
 }
 
@@ -247,26 +276,40 @@ Gloggy.prototype.postType = function(){
 
 Gloggy.prototype.gistMetaToPostMeta = function(gist) {
   var post = this.postType();
+
   post.title(gist.description);
   post.comments(gist.comments);
   post.commentUrl(gist.comments_url);
   post.created(gist.created_at);
   post.edited(gist.updated_at);
-  post.slug(gist.files[0]);
-  post.bodyUrl('http://gist.github.com/' + this.config.user + '/' + gist.id + '.json?callback=gistToPost');
+  post.slug(gist.files[Object.keys(gist.files)[0]].filename);
+  post.dataUrl('http://gist.github.com/' + this.config.user + '/' + gist.id + '.json?callback=gistToPost');
+
+  return post;
 }
 
-Gloggy.prototype.gistListToPostList = function(){}
+Gloggy.prototype.gistMetaListToPostMetaList = function(gistMetaList) {
+  var postMetaList = [] // short for post meta list
+    , length = gistMetaList.length
+    ;
+
+  for (var i = 0; i < length; i++) {
+    postMetaList.push( this.gistMetaToPostMeta(gistMetaList[i]) );
+  }
+
+  return postMetaList;
+}
 
 var g = new Gloggy({'user': 'svincent'});
 g.fetchGistList()
   .then(g.getResponse)
   .then(g.parseJson)
   .then(g.filterPosts.bind(g))
+  .then(g.gistMetaListToPostMetaList.bind(g))
   .then(function(a){
       console.log("success");
       console.log(a);
     }, function(e){
       console.log("fail");
-      console.log(e);
+      throw(e);
     });
