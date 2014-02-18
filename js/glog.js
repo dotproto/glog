@@ -18,6 +18,9 @@ Gloggy.prototype.version = "0.0.1a";
 Gloggy.prototype.gistMetaList = [];
 Gloggy.prototype.gistMetaListFull = [];
 Gloggy.prototype.postMetaList = [];
+Gloggy.prototype.el = {
+  postIndex: null
+}
 
 Gloggy.prototype.defaults = {
   user: 'svincent',
@@ -316,7 +319,32 @@ Gloggy.prototype.gistMetaListToPostMetaList = function(gistMetaList) {
 }
 
 Gloggy.prototype.renderPostList = function(postList){
-  this.config.index.perPage
+  // this.config.index.perPage
+  this.el.postIndex = document.getElementById('post-index');
+  var frag = document.createDocumentFragment();
+
+  for (var i = 0; i < this.postMetaList.length; i++) {
+    this.renderPostIndexItem(frag, this.postMetaList[i]);
+  }
+
+  this.el.postIndex.appendChild(frag);
+}
+
+Gloggy.prototype.renderPostIndexItem = function(frag, postMeta) {
+  var el = document.createElement('li');
+  el.setAttribute('data-target-post', postMeta.slug);
+
+  var title = document.createElement('h2');
+  title.setAttribute('class', 'title');
+  title.innerText = postMeta.title;
+  el.appendChild(title);
+
+  var date = document.createElement('span');
+  date.setAttribute('class', 'date');
+  date.innerText = postMeta.created.toString();
+  el.appendChild(date);
+
+  frag.appendChild(el);
 }
 
 var g = new Gloggy({'user': 'svincent'})
@@ -327,6 +355,7 @@ g.fetchGistList()
   .then(g.parseJson)
   .then(g.filterPosts.bind(g))
   .then(g.gistMetaListToPostMetaList.bind(g))
+  .then(g.renderPostList.bind(g))
   .then(function(a){
       console.log("success");
       console.log(a);
