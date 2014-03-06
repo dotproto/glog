@@ -9,7 +9,7 @@ GitHub offers free web hosting for static content and frontend web tech is prett
 
 [I](http://github.com/svincent) started working on Glog because I couldn't find a blogging system I was happy with. I've been looking for a way to blog that ...
 
-* is free (both [gratis and libre](http://en.wikipedia.org/wiki/Gratis_versus_libre)
+* is free (both [gratis and libre](http://en.wikipedia.org/wiki/Gratis_versus_libre))
 * gives me control of my words/data
 * uses a simple syntax like Markdown
 * lets me post using a simple web interface
