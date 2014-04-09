@@ -1,3 +1,15 @@
+# Getting Started
+
+This branch requires [Gulp](http://gulpjs.com) to build.
+
+```bash
+npm install -g gulp
+npm install
+gulp
+```
+
+To run the project, simply open `_dist\index.html` in your favorite browser.
+
 starter-kit
 ===========
 
