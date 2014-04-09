@@ -4,8 +4,8 @@ var clean = require('gulp-clean');
 var concat = require('gulp-concat');
 var declare = require('gulp-declare');
 var defineModule = require('gulp-define-module');
-// var handlebars = require('gulp-handlebars');
 var handlebars = require('gulp-ember-handlebars');
+var livereload = require('gulp-livereload');
 
 
 // Paths used by various build tasks
@@ -39,16 +39,6 @@ gulp.task('static-css', function() {
 gulp.task('static', ['static-js', 'static-html', 'static-css']);
 
 // Pre-compile EmberJS templates
-// gulp.task('templates', function(){
-// 	gulp.src(paths.templates)
-// 		.pipe(handlebars())
-// 		.pipe(defineModule('plain'))
-// 		.pipe(declare({
-// 			namespace: 'Ember.TEMPLATES'
-// 		}))
-// 		.pipe(concat('templates.js'))
-// 		.pipe(gulp.dest('_dist/js/'));
-// });
 gulp.task('templates', function(){
   gulp.src(paths.templates)
     .pipe(handlebars({
@@ -66,10 +56,16 @@ gulp.task('clean', function() {
 
 // Rerun tasks when their associated files change
 gulp.task('watch', function() {
-	gulp.watch(paths.templates, ['templates']);
-	gulp.watch(paths.static.js, ['static-js']);
-	gulp.watch(paths.static.css, ['static-css']);
-	gulp.watch(paths.static.html, ['static-html']);
+	var server = livereload();
+
+	var reload = function(file) {
+		server.changed(file.path);
+	}
+
+	gulp.watch(paths.templates, ['templates']).on('change', reload);
+	gulp.watch(paths.static.js, ['static-js']).on('change', reload);
+	gulp.watch(paths.static.css, ['static-css']).on('change', reload);
+	gulp.watch(paths.static.html, ['static-html']).on('change', reload);
 });
 
 // Default task
