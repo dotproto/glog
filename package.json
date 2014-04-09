@@ -1,0 +1,38 @@
+{
+  "name": "gloggy",
+  "version": "0.0.0",
+  "description": "Dynamic blog powered by Github Pages + Gists",
+  "main": "index.html",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/svincent/glog.git"
+  },
+  "keywords": [
+    "blog",
+    "ember",
+    "gist",
+    "github"
+  ],
+  "author": "Simeon Vincent",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/svincent/glog/issues"
+  },
+  "homepage": "https://github.com/svincent/glog",
+  "devDependencies": {
+    "handlebars": "^2.0.0-alpha.2",
+    "gulp-handlebars": "^2.0.0",
+    "gulp-define-module": "^0.1.0",
+    "gulp-declare": "^0.2.0",
+    "gulp-concat": "^2.2.0",
+    "gulp": "^3.6.0",
+    "gulp-clean": "^0.2.4",
+    "gulp-ember-handlebars": "^0.6.0"
+  }
+}
